@@ -17,8 +17,8 @@
 
 
 #index-banner {
-    min-height: 300px;
-    max-height: 350px;
+    min-height: 200px;
+    max-height: 250px;
     position: relative;
     background-color: #2196F3;
 }
@@ -222,8 +222,8 @@ nav ul a {
 @media only screen and (max-width: 480px) {
     .text_h {
         padding: 4% 0;
-        font-size: 5em;
-        font-weight: 100;
+        font-size: 4.5em;
+        font-weight: 90;
         color: white;
     }
 }
