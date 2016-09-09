@@ -65,6 +65,11 @@
     font-size: 7rem;
     display: block;
 }
+
+.card {
+    min-height: 550px;
+}
+
 .card-content a {color: #2196F3;}
 
 .card-content a:hover {color: #2196F3;}
@@ -271,6 +276,3 @@ footer.page-footer {
     margin-top: 0px !important;
 }
 
-.card {
-    min-height: 550px;
-}
