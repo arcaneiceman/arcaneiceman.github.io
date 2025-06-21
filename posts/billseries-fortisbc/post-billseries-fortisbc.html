@@ -227,8 +227,7 @@ rest:
                     <li>Average Temperature</li>
                     <li>Last Run</li>
                 </ul>
-                <p>If I have missed any data point or if you want to add other details to your response, feel free to
-                    leave me a comment on the Gist below!</p>
+                <p>Please create an issue on the repository if the payload stops working due to DOM changes.</p>
 
                 <h5 style="align-self: left;">Payload Script</h5>
                 <p>
@@ -241,8 +240,17 @@ rest:
                     To compile the script to the required JSON payload in Home Assistant's REST sensor configuration,
                     I've added a small bash script at the end of this guide that you can use to .
                 </p>
-                <div style="width: 80%;">
-                    <script src="https://gist.github.com/arcaneiceman/45189c531a345cf1e442fab45da80410.js"></script>
+                <div class="code-container">
+                    <div class="top-bar">
+                        <span class="language-label">javascript</span>
+                        <button class="copy-button" onclick="copyCode(this)">
+                            <i class="mdi-content-content-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-javascript"
+                        data-url="https://raw.githubusercontent.com/arcaneiceman/HomeAssistantPuppeteerScripts/refs/heads/master/FortisBC-Puppeteer-Payload.js">
+                        </code>
+                    </pre>
                 </div>
 
                 <h5 style="align-self: left;">Payload Script to Configuration</h5>
@@ -260,50 +268,10 @@ rest:
                             <i class="mdi-content-content-copy"></i> Copy
                         </button>
                     </div>
-                    <pre><code class="language-bash">
-#!/bin/bash
-# Usage: ./compile-payload.sh script.js
-#
-# This script:
-# 1. Removes full-line comments (lines that start with "//" after optional whitespace).
-# 2. Removes inline comments that begin with whitespace followed by "//".
-#    (This regex won’t touch "//" that appear immediately after non‐whitespace, e.g. inside URLs.)
-# 3. Replaces newlines with spaces.
-# 4. Collapses multiple spaces into one.
-# 5. Trims leading and trailing spaces.
-# 6. Escapes backslashes and double quotes for valid JSON.
-# 7. Outputs the final minified code as a one-line JSON object.
-
-if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 &lt;&#115;&#99;&#114;&#105;&#112;&#116;&period;&#106;&#115;&gt;" >&2
-    exit 1
-fi
-
-FILE="$1"
-
-# 1. Remove full-line comments (lines that, after trimming, start with "//")
-CONTENT=$(sed -E '/^[[:space:]]*\/\//d' "$FILE")
-# 2. Remove inline comments (only if preceded by whitespace)
-CONTENT=$(echo "$CONTENT" | sed -E 's/([[:space:]])\/\/.*$/\1/g')
-# 3. Replace newlines with spaces
-CONTENT=$(echo "$CONTENT" | tr '\n' ' ')
-# 4. Collapse multiple spaces into one
-CONTENT=$(echo "$CONTENT" | sed -E 's/  +/ /g')
-# 5. Trim leading/trailing spaces
-CONTENT=$(echo "$CONTENT" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-# 6. Escape backslashes and double quotes so the JSON remains valid
-ESCAPED=$(echo "$CONTENT" | sed 's/\\/\\\\/g; s/"/\\"/g')
-# 7. Output the final JSON object (single line)
-echo "{\"code\": \"$ESCAPED\"}" 
+                    <pre><code class="language-bash" data-url="https://raw.githubusercontent.com/arcaneiceman/HomeAssistantPuppeteerScripts/refs/heads/master/compile-Payload.sh">
                     </code></pre>
                 </div>
 
-                <h5 style="align-self: left;">Conclusion</h5>
-                <p>With all these data points, you can now create widgets and cards on your dashboard to represent your
-                    data or use them in automations for notifications! Long Live Home Assistant!
-                    If you enjoyed reading this guide or have any suggestions for improvement, follow me on Github or
-                    leave a star or comment in the Gist.
-                    <br>
                 </p>
                 <a href="https://github.com/arcaneiceman" class="github-button right" target="_blank" style="align-self: center;">
                     <svg height="16" width="16" viewBox="0 0 16 16" aria-hidden="true">

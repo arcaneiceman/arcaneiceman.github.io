@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#2196F3">
+    <title>Wali Usmani - BC Hydro in HomeAssistant</title>
+
+    <!-- CSS  -->
+    <link href="../../css/materialize.css" type="text/css" rel="stylesheet">
+    <link href="../../css/style.css" type="text/css" rel="stylesheet">
+    <link href="../../css/font-awesome.min.css" type="text/css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+
+    <!-- Scripts -->
+    <script src="../../js/modernizr.js"></script> <!-- Modernizr -->
+</head>
+
+<body id="top" class="scrollspy">
+
+    <!-- Pre Loader -->
+    <div id="loader-wrapper">
+        <div id="loader"></div>
+
+        <div class="loader-section section-left"></div>
+        <div class="loader-section section-right"></div>
+
+    </div>
+
+    <!--Navigation-->
+    <div class="navbar-fixed">
+        <nav id="nav_f" class="default_color" role="navigation">
+            <div class="container">
+                <div class="nav-wrapper">
+                    <ul id="nav-mobile" class="right side-nav">
+                        <li><a href="/#intro">Resume</a></li>
+                        <li><a href="/#posts">Posts</a></li>
+                        <li><a href="/#proj">Projects</a></li>
+                        <li><a href="/#contact">Contact</a></li>
+                    </ul>
+                    <a href="/" data-activates="nav-mobile" style="font-size: 1.5rem;">
+                        <i class="mdi-navigation-arrow-back"></i>
+                    </a>
+                    <a href="#" data-activates="nav-mobile" class="button-collapse">
+                        <i class="mdi-navigation-menu"></i>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div class="post-page">
+        <div class="post-page-container">
+            <div class="post-page-content">
+                <h3 class="center"><b>Home Assistant Bill Series: BC Hydro</b></h3>
+
+                <img src="/posts/billseries-bchydro/img/BCHydro-HomeAssistant.png"
+                    style="max-height: 600px; border-radius: 15px; align-self: center; max-width: 90%;" />
+                <h5 style="align-self: left;">Introduction</h5>
+
+                <p>
+                    Next up in the bill series is BC Hydro. This guide will show you how to set up a REST
+                    configuration to be able to fetch billing and consumption data and automatically populate them in Home Assistant.
+                    Similar to the the previous post for <a href="https://arcaneiceman.github.io/posts/billseries-fortisbc/post-billseries-fortisbc.html">Fortis BC</a>,
+                    we will once again use the <a href="https://www.browserless.io/"><b>Browserless Home Assistant Add-On</a></b> to scrape the BC Hydro 
+                    web page for the data we need.
+                </p>
+                <h5 style="align-self: left;">Prerequisites</h5>
+                <div class="github-button-container">
+                    <p>
+                        Install Browserless by add the following repository to your add-on store:
+                    </p>
+                    <a id="github-widget" href="https://github.com/alexbelgium/hassio-addons" target="_blank"
+                            class="github-button">
+                            <svg height="16" width="16" viewBox="0 0 16 16" aria-hidden="true">
+                                <path fill="white" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                                0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                                -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07
+                                -1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12
+                                0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.03 2.2-.82 2.2-.82.44 1.1.16
+                                1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01
+                                1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z">
+                                </path>
+                            </svg>
+                            <span style="white-space: nowrap;">alexbelgium/hassio-addons</span>
+                            <span id="github-stars">⭐   </span>
+                        </a>
+    
+                    <a
+                        href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Falexbelgium%2Fhassio-addons"
+                        target="_blank" class="ha-button">
+                        <span><i class="mdi-navigation-arrow-forward"></i> Open in Home Assistant</span>
+                    </a>
+                </div>
+                
+                <p>
+                    Once added, search for Browserless Chromium, install and launch it.
+                </p>
+
+                <h5 style="align-self: left;">HA Sensor Configuration</h5>
+                <blockquote>
+                    <b>Note: Similar to the setup for <a href="https://arcaneiceman.github.io/posts/billseries-fortisbc/post-billseries-fortisbc.html">Fortis BC</a>,
+                        this is the only section you actually need to configure the BC Hydro data in Home Assistant.
+                        The remaining sections are an expanded guide on how we derive this configuration and how it can
+                        be maintained.</b>
+                </blockquote>
+                <p>
+                    Copy the following REST sensor configuration in your Home Assistant either in the
+                    <b>configuration.yaml</b> or in <b>rest.yaml</b> and replace the
+                    <b>EMAIL</b> and <b>PASSWORD</b> parameters in payload section. Feel free to modify the
+                    <i>scan_interval</i> parameter to however often you want to fetch data. I suggest about 
+                    once a day which is how often BC Hydro updates data.
+                </p>
+                <div class="code-container">
+                    <div class="top-bar">
+                        <span class="language-label">yaml</span>
+                        <button class="copy-button" onclick="copyCode(this)">
+                            <i class="mdi-content-content-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-yaml">
+rest:
+    - resource: http://homeassistant.local:3000/function?stealth
+        scan_interval: 86400
+        method: POST
+        timeout: 120
+        headers:
+        Content-Type: "application/json"
+        payload: >-
+        {"code": "export default async ({ page }) => { try { const email = \"[EMAIL]\"; const password = \"[PASSWORD]\"; await page.setDefaultTimeout(1200000); await page.setDefaultNavigationTimeout(1200000); await page.goto(\"https://app.bchydro.com/BCHCustomerPortal/web/login.html\"); await page.waitForSelector(\"#email\"); await page.type(\"#email\", email); await page.type(\"#password\", password); await Promise.all([page.waitForNavigation(), page.click(\"#submit-button\")]); await page.waitForSelector(\"#detailCon:not([disabled])\"); const billData = await page.evaluate(() => { return { balance: document.querySelector('.bill_amount')?.innerText.trim().replace('$', '') || null, due_date: document.querySelector('.due_date')?.innerText.trim().replace('Payment due:', '').trim() || null, last_bill_date: document.querySelector('.bill_date span')?.innerText.match(/(.+):/)[1] || null, last_bill_amount: document.querySelector('.bill_date span')?.innerText.match(/:\\s*\\$(.+)/)[1] || null, } }); await Promise.all([page.waitForNavigation(), page.click(\"#detailCon\")]); await page.waitForSelector(\"#tableBtnLabel\"); await page.click(\"#tableBtnLabel\"); await page.waitForSelector(\"table#consumptionTable\"); const consumptionData = await page.evaluate(() => { const billingPeriod = document.querySelector(\"span#titleDateRange\")?.innerText.trim() || null; const costToDate = document.querySelector(\"div.bch-pb-progress-text\")?.innerText.trim().replace(\"$\", \"\").replace(\"*\", \"\") || null; const projectedCost = document.querySelector(\"div.md-value\")?.innerText.trim().replace(\"$\", \"\") || null; const table = document.querySelector(\"table#consumptionTable\"); const rows = table.querySelectorAll(\"tr\"); const headers = [...rows[0].querySelectorAll(\"td\")].map((th) => th.innerText.trim()).slice(1); let firstDate = null; let latestValidEntry = null; let currentConsumption = 0; for (let i = 1; i < rows.length; i++) { const cells = [...rows[i].querySelectorAll(\"td\")].slice(1); const rowData = {}; cells.forEach((cell, index) => { rowData[headers[index]] = cell.innerText.trim(); }); if (rowData[\"Total kWh\"] !== \"N/A\"){ currentConsumption += parseFloat(rowData[\"Total kWh\"]?.replace(/[^0-9.]/g, \"\")); } if (rowData[\"Date\"] && rowData[\"Total kWh\"] !== \"N/A\" && rowData[\"Total cost\"] !== \"N/A\") { latestValidEntry = rowData; } if (i == 1) { firstDate = rowData[\"Date\"]; } } return { cost_to_date: costToDate, projected_cost: projectedCost, current_billing_period: billingPeriod, current_consumption: currentConsumption, latest_date: latestValidEntry ? latestValidEntry[\"Date\"] : firstDate, latest_daily_consumption_kwh: latestValidEntry ? latestValidEntry[\"Total kWh\"] : 0, latest_daily_cost_dollars: latestValidEntry ? latestValidEntry[\"Total cost\"].replace(\"$\", \"\") : 0, }; }); await page.waitForSelector(\"span#dateSelect-button\"); await page.click(\"span#dateSelect-button\"); await page.waitForSelector(\"div.ui-menu-item-wrapper\"); const options = await page.$$(\"div.ui-menu-item-wrapper\"); for (const option of options){ const text = await page.evaluate(el => el.textContent, option); console.log(text); if (text.trim() === \"Last billing period\") { await option.click(); break; } } await page.waitForSelector(\"table#consumptionTable\"); await page.waitForSelector(\"#titleDateRange\"); const lastBillData = await page.evaluate(() => { const lastBillingPeriod = document.querySelector(\"span#titleDateRange\")?.innerText.trim() || null; const table = document.querySelector(\"table#consumptionTable\"); const rows = table.querySelectorAll(\"tr\"); const headers = [...rows[0].querySelectorAll(\"td\")].map((th) => th.innerText.trim()).slice(1); let lastBillingPeriodConsumption = 0; for (let i = 1; i < rows.length; i++) { const cells = [...rows[i].querySelectorAll(\"td\")].slice(1); const rowData = {}; cells.forEach((cell, index) => { rowData[headers[index]] = cell.innerText.trim(); }); if (rowData[\"Total kWh\"] !== \"N/A\"){ lastBillingPeriodConsumption += parseFloat(rowData[\"Total kWh\"]?.replace(/[^0-9.]/g, \"\")); } } return { last_billing_period: lastBillingPeriod, last_billing_period_consumption: lastBillingPeriodConsumption, }; }); const result = { ...billData, ...consumptionData, ...lastBillData, last_run: new Date().toLocaleString(\"en-GB\", { day: \"2-digit\", month: \"short\", year: \"numeric\", hour: \"2-digit\", minute: \"2-digit\", second: \"2-digit\", hour12: false }) }; return result; } catch (error) { return { error: error.message }; } };"}
+        sensor:
+        - name: "BC Hydro Balance"
+            value_template: "{{ value_json.balance | float }}"
+            unit_of_measurement: "$"
+            device_class: monetary
+
+        - name: "BC Hydro Due Date"
+            value_template: "{{ value_json.due_date }}"
+
+        - name: "BC Hydro Last Bill Amount"
+            value_template: "{{ value_json.last_bill_amount | float }}"
+            unit_of_measurement: "$"
+            device_class: monetary
+
+        - name: "BC Hydro Last Bill Date"
+            value_template: "{{ value_json.last_bill_date }}"
+
+        - name: "BC Hydro Cost To Date"
+            value_template: "{{ value_json.cost_to_date | float }}"
+            unit_of_measurement: "$"
+            state_class: total
+            device_class: monetary
+
+        - name: "BC Hydro Projected Cost"
+            value_template: "{{ value_json.projected_cost | float }}"
+            unit_of_measurement: "$"
+            state_class: total
+            device_class: monetary
+
+        - name: "BC Hydro Current Billing Period"
+            value_template: "{{ value_json.current_billing_period }}"
+
+        - name: "BC Hydro Current Consumption"
+            value_template: "{{ value_json.current_consumption }}"
+            device_class: energy
+            unit_of_measurement: kWh
+            state_class: total
+
+        - name: "BC Hydro Last Billing Period"
+            value_template: "{{ value_json.last_billing_period }}"
+
+        - name: "BC Hydro Last Billing Period Consumption"
+            value_template: "{{ value_json.last_billing_period_consumption }}"
+            device_class: energy
+            unit_of_measurement: kWh
+
+        - name: "BC Hydro Latest Daily Consumption"
+            value_template: "{{ value_json.latest_daily_consumption_kwh | float }}"
+            unit_of_measurement: "kWh"
+            device_class: energy
+
+        - name: "BC Hydro Latest Daily Cost"
+            value_template: "{{ value_json.latest_daily_cost_dollars | float }}"
+            unit_of_measurement: "$"
+            device_class: monetary
+
+        - name: "BC Hydro Latest Date"
+            value_template: "{{ value_json.latest_date }}"
+
+        - name: "BC Hydro Last Run"
+            value_template: "{{ value_json.last_run }}"
+                    </code></pre>
+                </div>
+                <h6 style="align-self: left;">The data points being collected are:</h6>
+                <ul class="bullet-grid">
+                    <li>Balance</li>
+                    <li>Due Date</li>
+                    <li>Last Bill Amount</li>
+                    <li>Last Bill Date</li>
+                    <li>Cost To Date</li>
+                    <li>Projected Cost</li>
+                    <li>Current Billing Period</li>
+                    <li>Current Consumption</li>
+                    <li>Last Billing Period</li>
+                    <li>Last Billing Period Consumption</li>
+                    <li>Latest Daily Consumption</li>
+                    <li>Latest Daily Cost</li>
+                    <li>Latest Latest Date</li>
+                    <li>Latest Last Run</li>
+                </ul>
+                <p>Please create an issue on the <a href="https://github.com/arcaneiceman/HomeAssistantPuppeteerScripts">repository</a> 
+                    if the payload stops working due to DOM changes.</p>
+
+                <h5 style="align-self: left;">Puppeteer Payload Script</h5>
+                <p>
+                    The Puppeteer script requires modification to <b>email</b> and <b>password</b>. Please refer to the
+                    <a href="https://arcaneiceman.github.io/posts/billseries-fortisbc/post-billseries-fortisbc.html">previous</a> post for in the 
+                    Payload Script to Configuration section to compile it to be used by the Home Assistant rest sensor.
+                </p>
+                <div class="code-container">
+                    <div class="top-bar">
+                        <span class="language-label">javascript</span>
+                        <button class="copy-button" onclick="copyCode(this)">
+                            <i class="mdi-content-content-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-javascript"
+                        data-url="https://raw.githubusercontent.com/arcaneiceman/HomeAssistantPuppeteerScripts/refs/heads/master/BCHydro-Puppeteer-Payload.js">
+                        </code>
+                    </pre>
+                </div>
+
+                <a href="https://github.com/arcaneiceman" class="github-button right" target="_blank" style="align-self: center;">
+                    <svg height="16" width="16" viewBox="0 0 16 16" aria-hidden="true">
+                        <path fill="white" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                            0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                            -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07
+                            -1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12
+                            0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.03 2.2-.82 2.2-.82.44 1.1.16
+                            1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01
+                            1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z">
+                        </path>
+                    </svg> arcaneiceman
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="../../js/materialize.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../js/highlight.js"></script>
+    <script src="../../js/init.js"></script>
+</body>
+
+</html>
